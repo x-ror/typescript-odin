@@ -212,6 +212,8 @@ next_token :: proc(lexer: ^Lexer) -> Token {
 		token.kind = .Semicolon
 	case '=':
 		token.kind = .Assign
+	case '.':
+		token.kind = .Dot
 	case:
 		if is_letter(lexer.ch) {
 			token.text = read_identifier(lexer)
