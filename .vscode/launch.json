@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Odin",
+            "type": "lldb-dap",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/typescript-odin-debug",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "odin: build debug",
+            "args": []
+        }
+    ]
+}
