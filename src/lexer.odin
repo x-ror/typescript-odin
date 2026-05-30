@@ -86,11 +86,15 @@ advance_char :: proc(lexer: ^Lexer) {
 }
 
 is_whitespace :: proc(ch: u8) -> bool {
-	return ch == ' ' || ch == '\r' || ch == '\t' || ch == '\n'
+	return ch == ' ' || ch == '\t' || ch == 0x0B || ch == 0x0C || ch == 0xA0
+}
+
+is_line_terminator :: proc(ch: u8) -> bool {
+	return ch == '\r' || ch == '\n'
 }
 
 skip_whitespace :: proc(lexer: ^Lexer) {
-	for is_whitespace(lexer.ch) {
+	for is_whitespace(lexer.ch) || is_line_terminator(lexer.ch) {
 		if lexer.ch == '\n' {
 			lexer.line += 1
 			lexer.col = 0

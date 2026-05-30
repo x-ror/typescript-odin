@@ -20,6 +20,21 @@ test_is_letter :: proc(t: ^testing.T) {
 }
 
 @(test)
+test_whitespace_and_line_terminators :: proc(t: ^testing.T) {
+	testing.expect(t, is_whitespace(' '))
+	testing.expect(t, is_whitespace('\t'))
+	testing.expect(t, is_whitespace(0x0B))
+	testing.expect(t, is_whitespace(0x0C))
+	testing.expect(t, is_whitespace(0xA0))
+	testing.expect(t, !is_whitespace('\n'))
+	testing.expect(t, !is_whitespace('\r'))
+
+	testing.expect(t, is_line_terminator('\n'))
+	testing.expect(t, is_line_terminator('\r'))
+	testing.expect(t, !is_line_terminator(' '))
+}
+
+@(test)
 test_read_identifier :: proc(t: ^testing.T) {
 	lexer := init_lexer("myVar1 = 10")
 
