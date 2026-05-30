@@ -62,12 +62,12 @@ Precedence :: enum {
 }
 
 get_token_precedence :: proc(kind: Token_Kind) -> Precedence {
-	switch kind {
-	case .Plus, .Minus: 
+	#partial switch kind {
+	case .Plus, .Minus:
 		return .SUM
 	// Коли ти додаси Multiply (*) та Divide (/) у свій Token_Kind:
 	// case .Multiply, .Divide: return .PRODUCT
-	case: 
+	case:
 		return .LOWEST
 	}
 }

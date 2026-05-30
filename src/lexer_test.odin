@@ -60,6 +60,16 @@ test_read_number_exponent :: proc(t: ^testing.T) {
 }
 
 @(test)
+test_read_string_literal_with_escaped_quote :: proc(t: ^testing.T) {
+	lexer := init_lexer("\"Hello \\\"World\\\"\";")
+
+	text := read_string_literal(&lexer)
+
+	testing.expect_value(t, text, "\"Hello \\\"World\\\"\"")
+	testing.expect_value(t, lexer.ch, u8(';'))
+}
+
+@(test)
 test_peek_next_char :: proc(t: ^testing.T) {
 	lexer := init_lexer("ab")
 
@@ -74,4 +84,64 @@ test_lookup_identifier :: proc(t: ^testing.T) {
 	testing.expect_value(t, lookup_identifier("var"), Token_Kind.Keyword_Var)
 	testing.expect_value(t, lookup_identifier("function"), Token_Kind.Keyword_Function)
 	testing.expect_value(t, lookup_identifier("myVar"), Token_Kind.Identifier)
+}
+
+@(test)
+test_next_token_punctuation_and_operators :: proc(t: ^testing.T) {
+	lexer := init_lexer("(){}[],:? == === && || = + - * / . ;")
+
+	expected_kinds := [?]Token_Kind {
+		.Open_Paren,
+		.Close_Paren,
+		.Open_Brace,
+		.Close_Brace,
+		.Open_Bracket,
+		.Close_Bracket,
+		.Comma,
+		.Colon,
+		.Question,
+		.Equal,
+		.Strict_Equal,
+		.Logical_And,
+		.Logical_Or,
+		.Assign,
+		.Plus,
+		.Minus,
+		.Multiply,
+		.Divide,
+		.Dot,
+		.Semicolon,
+		.EOF,
+	}
+
+	expected_texts := [?]string {
+		"(",
+		")",
+		"{",
+		"}",
+		"[",
+		"]",
+		",",
+		":",
+		"?",
+		"==",
+		"===",
+		"&&",
+		"||",
+		"=",
+		"+",
+		"-",
+		"*",
+		"/",
+		".",
+		";",
+		"",
+	}
+
+	for kind, index in expected_kinds {
+		token := next_token(&lexer)
+
+		testing.expect_value(t, token.kind, kind)
+		testing.expect_value(t, token.text, expected_texts[index])
+	}
 }

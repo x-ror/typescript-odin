@@ -85,9 +85,12 @@ advance_char :: proc(lexer: ^Lexer) {
 	lexer.col += 1
 }
 
+is_whitespace :: proc(ch: u8) -> bool {
+	return ch == ' ' || ch == '\r' || ch == '\t' || ch == '\n'
+}
+
 skip_whitespace :: proc(lexer: ^Lexer) {
-	// Поки поточний символ — пробіл, табуляція або новий рядок, ми просто йдемо далі
-	for lexer.ch == ' ' || lexer.ch == '\r' || lexer.ch == '\t' || lexer.ch == '\n' {
+	for is_whitespace(lexer.ch) {
 		if lexer.ch == '\n' {
 			lexer.line += 1
 			lexer.col = 0
@@ -171,9 +174,7 @@ read_string_literal :: proc(lexer: ^Lexer) -> string {
 
 	advance_char(lexer)
 
-	for lexer.ch != quote_char && lexer.ch != 0 {
-		advance_char(lexer)
-
+	for lexer.ch != 0 {
 		if lexer.ch == '\\' {
 			advance_char(lexer)
 
@@ -182,9 +183,12 @@ read_string_literal :: proc(lexer: ^Lexer) -> string {
 			}
 			continue
 		}
-	}
 
-	if lexer.ch == quote_char {
+		if lexer.ch == quote_char {
+			advance_char(lexer)
+			break
+		}
+
 		advance_char(lexer)
 	}
 
@@ -210,6 +214,7 @@ lookup_identifier :: proc(keyword: string) -> Token_Kind {
 next_token :: proc(lexer: ^Lexer) -> Token {
 	skip_whitespace(lexer)
 
+	start := lexer.position
 	token: Token = {
 		line = lexer.line,
 		col  = lexer.col,
@@ -221,8 +226,6 @@ next_token :: proc(lexer: ^Lexer) -> Token {
 		return token
 	}
 
-	token.text = lexer.input[lexer.position:lexer.read_position]
-
 	switch lexer.ch {
 	case '+':
 		token.kind = .Plus
@@ -230,14 +233,55 @@ next_token :: proc(lexer: ^Lexer) -> Token {
 		token.kind = .Minus
 	case ':':
 		token.kind = .Colon
+	case '?':
+		token.kind = .Question
 	case '*':
 		token.kind = .Multiply
 	case '/':
 		token.kind = .Divide
 	case ';':
 		token.kind = .Semicolon
+	case ',':
+		token.kind = .Comma
+	case '(':
+		token.kind = .Open_Paren
+	case ')':
+		token.kind = .Close_Paren
+	case '{':
+		token.kind = .Open_Brace
+	case '}':
+		token.kind = .Close_Brace
+	case '[':
+		token.kind = .Open_Bracket
+	case ']':
+		token.kind = .Close_Bracket
 	case '=':
-		token.kind = .Assign
+		if peek_next_char(lexer) == '=' {
+			advance_char(lexer)
+
+			if peek_next_char(lexer) == '=' {
+				advance_char(lexer)
+				token.kind = .Strict_Equal
+			} else {
+				token.kind = .Equal
+			}
+		} else {
+			token.kind = .Assign
+		}
+	case '&':
+		if peek_next_char(lexer) == '&' {
+			advance_char(lexer)
+			token.kind = .Logical_And
+		} else {
+			token.kind = .Invalid
+		}
+	case '|':
+		if peek_next_char(lexer) == '|' {
+			advance_char(lexer)
+			token.kind = .Logical_Or
+		} else {
+			token.kind = .Invalid
+		}
 	case '.':
 		token.kind = .Dot
 	case '"', '\'':
@@ -258,6 +302,7 @@ next_token :: proc(lexer: ^Lexer) -> Token {
 		}
 	}
 
+	token.text = lexer.input[start:lexer.read_position]
 	advance_char(lexer)
 	return token
 }
