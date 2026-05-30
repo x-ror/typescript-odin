@@ -1,0 +1,7 @@
+const variablea: number = 11;
+var variableB = 12.5;
+
+const message: string = "Hello \"World";
+let user = 'Odin \'Developer';
+
+const text = "Він сказав \"Привіт\"";

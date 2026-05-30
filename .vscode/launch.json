@@ -5,6 +5,11 @@
             "name": "Debug Odin",
             "type": "lldb-dap",
             "request": "launch",
+            "debugAdapterExecutable": "/usr/bin/lldb-dap",
+            "sourceMap": {
+                "/mnt/storage/work/typescript-odin": "${workspaceFolder}",
+                "./": "${workspaceFolder}/src/"
+            },
             "program": "${workspaceFolder}/bin/typescript-odin-debug",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "odin: build debug",

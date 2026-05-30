@@ -11,7 +11,7 @@ Token_Kind :: enum {
 	Keyword_Function,
 
 	// 2. Літерали та ідентифікатори
-	Identifier,     // total, myVar, console
+	Identifier, // total, myVar, console
 	Number_Literal, // 5, 10.5
 	String_Literal, // "hello", 'world'
 
@@ -20,29 +20,29 @@ Token_Kind :: enum {
 	// Інші (+=, -=) додамо пізніше
 
 	// 4. Арифметичні оператори
-	Plus,     // + (і для додавання, і для унарного)
-	Minus,    // - (і для віднімання, і для унарного)
+	Plus, // + (і для додавання, і для унарного)
+	Minus, // - (і для віднімання, і для унарного)
 	Multiply, // *
-	Divide,   // /
+	Divide, // /
 
 	// 5. Оператори порівняння та логіки (Базові)
 	Strict_Equal, // ===
-	Equal,        // ==
+	Equal, // ==
 	Logical_And, // &&
-	Logical_Or,  // ||
+	Logical_Or, // ||
 
 	// 6. Пунктуація та дужки (Обов'язково розділені!)
-	Open_Paren,    // (
-	Close_Paren,   // )
-	Open_Brace,    // {  (Потрібні для тіла функцій та блоків коду)
-	Close_Brace,   // }
-	Open_Bracket,  // [
+	Open_Paren, // (
+	Close_Paren, // )
+	Open_Brace, // {  (Потрібні для тіла функцій та блоків коду)
+	Close_Brace, // }
+	Open_Bracket, // [
 	Close_Bracket, // ]
-	Comma,         // ,  (Роздільник аргументів у функціях)
-	Dot,           // .  (Для console.log)
-	Semicolon,     // ;
-	Colon,         // :  (Початок типу, наприклад x: number)
-	Question,      // ?  (Для optional типів x?: number або тернарника)
+	Comma, // ,  (Роздільник аргументів у функціях)
+	Dot, // .  (Для console.log)
+	Semicolon, // ;
+	Colon, // :  (Початок типу, наприклад x: number)
+	Question, // ?  (Для optional типів x?: number або тернарника)
 }
 
 Token :: struct {
@@ -53,21 +53,21 @@ Token :: struct {
 }
 
 Lexer :: struct {
-	input_len:      int,
-	input:          string, // Весь текст файлу test.ts
-	position:       int,    // Поточний індекс символу, який ми прочитали (ch)
-	read_position:  int,    // Наступний індекс
-	ch:             u8,     // Поточний символ у форматі байту (ASCII)
-	line:           int,    // Для трекінгу помилок
-	col:            int,    // Для трекінгу помилок
+	input_len:     int,
+	input:         string, // Весь текст файлу test.ts
+	position:      int, // Поточний індекс символу, який ми прочитали (ch)
+	read_position: int, // Наступний індекс
+	ch:            u8, // Поточний символ у форматі байту (ASCII)
+	line:          int, // Для трекінгу помилок
+	col:           int, // Для трекінгу помилок
 }
 
 init_lexer :: proc(input: string) -> Lexer {
-	lexer := Lexer{
-		input       = input,
-		input_len   = len(input),
-		line        = 1,
-		col         = 0,
+	lexer := Lexer {
+		input     = input,
+		input_len = len(input),
+		line      = 1,
+		col       = 0,
 	}
 	advance_char(&lexer) // Читаємо найперший символ файлу
 	return lexer
@@ -165,6 +165,32 @@ peek_next_char :: proc(lexer: ^Lexer) -> u8 {
 	return lexer.input[lexer.read_position]
 }
 
+read_string_literal :: proc(lexer: ^Lexer) -> string {
+	quote_char := lexer.ch
+	start := lexer.position
+
+	advance_char(lexer)
+
+	for lexer.ch != quote_char && lexer.ch != 0 {
+		advance_char(lexer)
+
+		if lexer.ch == '\\' {
+			advance_char(lexer)
+
+			if lexer.ch != 0 {
+				advance_char(lexer)
+			}
+			continue
+		}
+	}
+
+	if lexer.ch == quote_char {
+		advance_char(lexer)
+	}
+
+	return lexer.input[start:lexer.position]
+}
+
 
 lookup_identifier :: proc(keyword: string) -> Token_Kind {
 	switch keyword {
@@ -214,6 +240,10 @@ next_token :: proc(lexer: ^Lexer) -> Token {
 		token.kind = .Assign
 	case '.':
 		token.kind = .Dot
+	case '"', '\'':
+		token.kind = .String_Literal
+		token.text = read_string_literal(lexer)
+		return token
 	case:
 		if is_letter(lexer.ch) {
 			token.text = read_identifier(lexer)
